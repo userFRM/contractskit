@@ -1,0 +1,43 @@
+name: backfill
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "First year to backfill"
+        required: false
+        default: "2019"
+      to:
+        description: "Last year to backfill (default: current year)"
+        required: false
+      min_amount:
+        description: "Minimum award amount in whole dollars (0 = no floor)"
+        required: false
+        default: "100000"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+    env:
+      CONTRACTSKIT_SEC_USER_AGENT: "contractskit ${{ secrets.CONTACT_EMAIL || 'contact@example.com' }}"
+      RUST_LOG: info
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build CLI
+        run: cargo build --release --bin contractskit-cli
+      - name: Backfill
+        run: |
+          ARGS="--from ${{ inputs.from }} --min-amount ${{ inputs.min_amount }}"
+          if [ -n "${{ inputs.to }}" ]; then ARGS="$ARGS --to ${{ inputs.to }}"; fi
+          ./target/release/contractskit-cli backfill $ARGS
+      - name: Commit data
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add data/
+          git diff --cached --quiet || git commit -m "chore(data): backfill via workflow_dispatch"
+          git push

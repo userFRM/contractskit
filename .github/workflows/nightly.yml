@@ -1,0 +1,46 @@
+name: nightly
+
+# USASpending publishes contract awards on a rolling basis. nightly-append
+# fetches awards on or after the latest action_date already in the current-year
+# file and merges them, deduped by award_id, then refreshes the manifest.
+# 08:00 UTC weekdays = after the overnight publishing window.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    env:
+      # USASpending needs no key. The SEC company-tickers fetch needs a bare
+      # "<name> <email>" User-Agent; the fallback placeholder is accepted by SEC,
+      # so no personal address is baked into a public file. Set CONTACT_EMAIL to
+      # use a real one.
+      CONTRACTSKIT_SEC_USER_AGENT: "contractskit ${{ secrets.CONTACT_EMAIL || 'contact@example.com' }}"
+      RUST_LOG: info
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build CLI
+        run: cargo build --release --bin contractskit-cli
+      - name: Pull new awards
+        run: ./target/release/contractskit-cli nightly-append
+        continue-on-error: true
+      - name: Regenerate manifest
+        run: ./target/release/contractskit-cli manifest
+      - name: Commit if changed
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+          else
+            git commit -m "chore(data): nightly $(date -u +%Y-%m-%d)"
+            git push
+          fi
