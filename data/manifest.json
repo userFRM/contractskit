@@ -3,5 +3,6 @@
   "contracts-2020.parquet": "sha256:dca1c8d014741bcc2634e9d29b4b65f4b1bcec1b3db64dd69b97f6953f128ab1",
   "contracts-2021.parquet": "sha256:510b917c0e39d398e4987c38a040fbca3df7b0d93a8ee464666044f624675c69",
   "contracts-2022.parquet": "sha256:fb259ab63ebe476702fcddaee188cf4fc0e2e352e25e68f3fdfce54771b96b7a",
-  "contracts-2023.parquet": "sha256:721fd96eca3528ea7bc1dfea86a88b975a2df1d40601866ab9c57d309b589a37"
+  "contracts-2023.parquet": "sha256:721fd96eca3528ea7bc1dfea86a88b975a2df1d40601866ab9c57d309b589a37",
+  "contracts-2026.parquet": "sha256:4570da8dcf2eed1bab1f295417d4e9ca1ed98a3e009c071df1630c4e78ab226a"
 }
